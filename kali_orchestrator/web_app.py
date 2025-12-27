@@ -1,5 +1,6 @@
 """Web interface for Kali AI Orchestrator using Gradio."""
 
+import sys
 import gradio as gr
 from kali_orchestrator.agent import OrchestratorAgent
 from kali_orchestrator.config import OrchestratorConfig
@@ -13,11 +14,22 @@ class WebOrchestrator:
 
     def __init__(self):
         """Initialize web orchestrator."""
-        self.config = OrchestratorConfig.load_from_file()
-        self.memory = MemoryManager()
-        self.agent = OrchestratorAgent(self.config, self.memory, force_local=False)
-        self.report_generator = ReportGenerator(self.memory)
-        self.current_persona = None
+        try:
+            print("Loading configuration...", file=sys.stderr)
+            self.config = OrchestratorConfig.load_from_file()
+            print("Initializing memory manager...", file=sys.stderr)
+            self.memory = MemoryManager()
+            print("Initializing agent...", file=sys.stderr)
+            self.agent = OrchestratorAgent(self.config, self.memory, force_local=False)
+            print("Initializing report generator...", file=sys.stderr)
+            self.report_generator = ReportGenerator(self.memory)
+            self.current_persona = None
+            print("✅ Web orchestrator initialized successfully", file=sys.stderr)
+        except Exception as e:
+            print(f"❌ Error initializing orchestrator: {e}", file=sys.stderr)
+            import traceback
+            traceback.print_exc(file=sys.stderr)
+            raise
 
     def process_query(self, query: str, persona: str = None, history: list = None):
         """Process a user query.
@@ -249,10 +261,35 @@ class WebOrchestrator:
                 outputs=[session_info, findings_count],
             )
 
-        demo.launch(share=share, server_name=server_name, server_port=server_port)
+        # Ensure Gradio is accessible from outside container
+        demo.launch(
+            share=share,
+            server_name=server_name,  # 0.0.0.0 to bind to all interfaces
+            server_port=server_port,
+            show_error=True,
+            quiet=False,
+            inbrowser=False,  # Don't try to open browser in container
+            favicon_path=None,
+        )
 
 
 if __name__ == "__main__":
-    app = WebOrchestrator()
-    app.launch()
+    import sys
+    
+    print("🚀 Starting Kali AI Orchestrator Web App...", file=sys.stderr)
+    print(f"   Server: 0.0.0.0:7860", file=sys.stderr)
+    print(f"   Access: http://localhost:7860", file=sys.stderr)
+    sys.stderr.flush()
+    
+    try:
+        app = WebOrchestrator()
+        print("✅ Orchestrator initialized successfully", file=sys.stderr)
+        sys.stderr.flush()
+        app.launch()
+    except Exception as e:
+        print(f"❌ Error starting web app: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
+        sys.exit(1)
 

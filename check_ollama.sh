@@ -16,8 +16,11 @@ fi
 # Check Ollama health
 echo ""
 echo "🏥 Checking Ollama health..."
-if docker exec kali-orchestrator-ollama curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+if docker exec kali-orchestrator-ollama ollama list > /dev/null 2>&1; then
     echo "✅ Ollama is responding"
+    echo ""
+    echo "📦 Available models:"
+    docker exec kali-orchestrator-ollama ollama list
 else
     echo "❌ Ollama is NOT responding"
     echo "   It may still be starting up. Wait a minute and try again."

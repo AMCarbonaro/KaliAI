@@ -37,26 +37,34 @@ class WebOrchestrator:
         Args:
             query: User query string
             persona: Selected persona name
-            history: Chat history (list of tuples: [(user_msg, bot_msg), ...])
+            history: Chat history (list of dicts: [{"role": "user", "content": "..."}, ...])
 
         Returns:
             Updated history, empty query input, formatted results
         """
-        # Ensure history is a list of tuples (Gradio Chatbot format)
+        # Ensure history is a list of dicts with 'role' and 'content' (Gradio 6.0 format)
         if history is None:
             history = []
         else:
             # Validate and clean history format
             cleaned_history = []
             for item in history:
-                if isinstance(item, (list, tuple)) and len(item) == 2:
-                    cleaned_history.append((str(item[0]), str(item[1])))
-                elif isinstance(item, dict):
-                    # Convert dict format to tuple format
-                    user_msg = item.get("role") == "user" and item.get("content", "") or ""
-                    bot_msg = item.get("role") == "assistant" and item.get("content", "") or ""
-                    if user_msg or bot_msg:
-                        cleaned_history.append((user_msg, bot_msg))
+                if isinstance(item, dict) and "role" in item and "content" in item:
+                    # Already in correct format
+                    cleaned_history.append({
+                        "role": str(item["role"]),
+                        "content": str(item["content"])
+                    })
+                elif isinstance(item, (list, tuple)) and len(item) == 2:
+                    # Convert tuple format to dict format
+                    cleaned_history.append({
+                        "role": "user",
+                        "content": str(item[0])
+                    })
+                    cleaned_history.append({
+                        "role": "assistant",
+                        "content": str(item[1])
+                    })
             history = cleaned_history
 
         if not query.strip():
@@ -76,16 +84,20 @@ class WebOrchestrator:
 
             if result.get("success"):
                 response = result.get("response", "")
-                history.append((query, response))
+                # Append as dict format
+                history.append({"role": "user", "content": query})
+                history.append({"role": "assistant", "content": response})
                 results_text = self._format_results(result)
                 return history, "", results_text
             else:
                 error = result.get("error", "Unknown error")
-                history.append((query, f"❌ Error: {error}"))
+                history.append({"role": "user", "content": query})
+                history.append({"role": "assistant", "content": f"❌ Error: {error}"})
                 return history, "", f"**Error:** {error}"
         except Exception as e:
             error_msg = f"Exception occurred: {str(e)}"
-            history.append((query, f"❌ {error_msg}"))
+            history.append({"role": "user", "content": query})
+            history.append({"role": "assistant", "content": f"❌ {error_msg}"})
             return history, "", f"**Error:** {error_msg}"
 
     def _format_results(self, result: dict) -> str:
@@ -179,7 +191,7 @@ class WebOrchestrator:
                     chatbot = gr.Chatbot(
                         label="Conversation",
                         height=400,
-                        value=[],  # Initialize with empty list
+                        value=[],  # Initialize with empty list (will be list of dicts)
                     )
 
                     query_input = gr.Textbox(

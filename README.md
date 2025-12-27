@@ -53,7 +53,7 @@ kali-orchestrator setup
 
 ### 🌐 Web App (Easiest - Recommended)
 
-**One-command start - no installation needed!**
+**True zero-install - automatically installs Docker if needed!**
 
 ```bash
 # Clone the repository
@@ -63,9 +63,15 @@ cd KaliAI
 # Make start script executable
 chmod +x start.sh
 
-# Start everything (one command!)
+# Start everything (one command - auto-installs Docker!)
 ./start.sh
 ```
+
+**First time?** The script will automatically:
+- ✅ Install Docker (if not present)
+- ✅ Install docker-compose
+- ✅ Set up all services
+- ⚠️ **Note:** After first Docker install, log out and back in (or run `newgrp docker`), then run `./start.sh` again
 
 Then open your browser to **http://localhost:7860** and start using the orchestrator!
 
@@ -77,7 +83,7 @@ The web interface provides:
 - Agent persona selection
 - Scope visualization
 
-**That's it!** No Python installation, no dependency management - just download and run.
+**That's it!** No manual installation, no Python setup, no dependency management - everything is automatic!
 
 ### CLI Usage
 

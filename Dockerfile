@@ -29,28 +29,30 @@ RUN apt-get update && \
     || echo "Warning: Some packages may not be available in this Kali version" && \
     rm -rf /var/lib/apt/lists/*
 
-# Python dependencies stage
-FROM kali-tools AS python-deps
+# Final stage - build everything in one stage for simplicity
+FROM kali-tools AS final
 
 WORKDIR /app
 
-# Copy dependency files
+# Copy project files
 COPY pyproject.toml ./
+COPY kali_orchestrator/ ./kali_orchestrator/
 
-# Install Python dependencies
-RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip3 install --no-cache-dir -e .
+# Create virtual environment and install dependencies
+# This avoids the externally-managed-environment error (PEP 668)
+RUN python3 -m venv /app/venv && \
+    /app/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    /app/venv/bin/pip install --no-cache-dir -e . && \
+    rm -rf /var/lib/apt/lists/*
 
-# Final stage
-FROM python-deps AS final
+# Set PATH to use venv Python
+ENV PATH="/app/venv/bin:$PATH"
 
 # Create non-root user
 RUN useradd -m -u 1000 orchestrator && \
     mkdir -p /home/orchestrator/.kali-orchestrator/{memory,logs,reports} && \
-    chown -R orchestrator:orchestrator /home/orchestrator/.kali-orchestrator
-
-# Copy application code
-COPY --chown=orchestrator:orchestrator . /app
+    chown -R orchestrator:orchestrator /home/orchestrator/.kali-orchestrator && \
+    chown -R orchestrator:orchestrator /app
 
 # Set working directory
 WORKDIR /app
@@ -66,5 +68,5 @@ ENV KALI_ORCHESTRATOR_HOME=/home/orchestrator/.kali-orchestrator
 EXPOSE 7860
 
 # Default command - run web app
-CMD ["python3", "-m", "kali_orchestrator.web_app"]
+CMD ["python", "-m", "kali_orchestrator.web_app"]
 

@@ -94,7 +94,11 @@ class ReportingConfig(BaseModel):
 class OrchestratorConfig(BaseSettings):
     """Main orchestrator configuration."""
 
-    model_config = SettingsConfigDict(env_prefix="KALI_ORCHESTRATOR_", case_sensitive=False)
+    model_config = SettingsConfigDict(
+        env_prefix="KALI_ORCHESTRATOR_",
+        case_sensitive=False,
+        env_nested_delimiter="__",  # Use __ for nested fields (e.g., LLM__OLLAMA__BASE_URL)
+    )
 
     scope: ScopeConfig = Field(default_factory=ScopeConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)

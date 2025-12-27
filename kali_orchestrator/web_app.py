@@ -37,13 +37,27 @@ class WebOrchestrator:
         Args:
             query: User query string
             persona: Selected persona name
-            history: Chat history
+            history: Chat history (list of tuples: [(user_msg, bot_msg), ...])
 
         Returns:
             Updated history, empty query input, formatted results
         """
+        # Ensure history is a list of tuples (Gradio Chatbot format)
         if history is None:
             history = []
+        else:
+            # Validate and clean history format
+            cleaned_history = []
+            for item in history:
+                if isinstance(item, (list, tuple)) and len(item) == 2:
+                    cleaned_history.append((str(item[0]), str(item[1])))
+                elif isinstance(item, dict):
+                    # Convert dict format to tuple format
+                    user_msg = item.get("role") == "user" and item.get("content", "") or ""
+                    bot_msg = item.get("role") == "assistant" and item.get("content", "") or ""
+                    if user_msg or bot_msg:
+                        cleaned_history.append((user_msg, bot_msg))
+            history = cleaned_history
 
         if not query.strip():
             return history, "", ""
@@ -165,6 +179,7 @@ class WebOrchestrator:
                     chatbot = gr.Chatbot(
                         label="Conversation",
                         height=400,
+                        value=[],  # Initialize with empty list
                     )
 
                     query_input = gr.Textbox(

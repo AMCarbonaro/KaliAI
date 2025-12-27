@@ -1,0 +1,43 @@
+scope:
+  allowed_ips:
+    - "192.168.1.0/24"
+    - "10.0.0.0/8"
+  allowed_domains:
+    - "example.com"
+  strict_mode: true
+
+llm:
+  primary_llm: "ollama"  # ollama | gemini-cli | google-generativeai
+  ollama:
+    model: "llama3.2"
+    base_url: "http://localhost:11434"
+  gemini:
+    api_key: ""  # Optional, for google-generativeai fallback
+  openai:
+    api_key: ""  # Future support
+
+safety:
+  require_confirmation: true
+  dangerous_actions:
+    - "exploit"
+    - "payload"
+    - "inject"
+    - "shell"
+    - "meterpreter"
+  containerized_execution: true
+
+hexstrike:
+  server_url: "http://127.0.0.1:8888"
+  auto_start: true
+  timeout: 300
+
+logging:
+  level: "INFO"
+  file: "~/.kali-orchestrator/logs/session.log"
+  json_log: true
+
+reporting:
+  default_format: "markdown"  # markdown | html | pdf
+  include_screenshots: true
+  bug_bounty_template: true
+

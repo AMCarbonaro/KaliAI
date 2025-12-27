@@ -1,0 +1,24 @@
+name: web_app
+description: Web application focused testing - Nuclei, Nikto, SQLMap
+tool_whitelist:
+  - nmap
+  - nikto
+  - nuclei
+  - sqlmap
+  - burp
+safety:
+  require_confirmation: true
+  allow_exploits: false
+  allow_active_probes: true
+  max_scan_intensity: medium
+reporting:
+  style: bug_bounty
+  include_recommendations: true
+  include_screenshots: true
+focus:
+  - web_vulnerabilities
+  - sql_injection
+  - xss
+  - authentication_bypass
+  - directory_traversal
+

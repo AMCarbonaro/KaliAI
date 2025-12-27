@@ -1,0 +1,24 @@
+name: red_team
+description: Red team simulation - multi-stage with persistence
+tool_whitelist:
+  - nmap
+  - metasploit
+  - burp
+  - ghidra
+  - wireshark
+safety:
+  require_confirmation: true
+  allow_exploits: true
+  allow_active_probes: true
+  max_scan_intensity: high
+reporting:
+  style: detailed
+  include_recommendations: true
+  include_timeline: true
+focus:
+  - reconnaissance
+  - exploitation
+  - persistence
+  - lateral_movement
+  - data_exfiltration
+

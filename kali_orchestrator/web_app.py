@@ -17,6 +17,9 @@ class WebOrchestrator:
         try:
             print("Loading configuration...", file=sys.stderr)
             self.config = OrchestratorConfig.load_from_file()
+            # Log the Ollama URL being used (for debugging)
+            ollama_url = self.config.llm.ollama.base_url
+            print(f"   Ollama URL: {ollama_url}", file=sys.stderr)
             print("Initializing memory manager...", file=sys.stderr)
             self.memory = MemoryManager()
             print("Initializing agent...", file=sys.stderr)

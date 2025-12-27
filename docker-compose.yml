@@ -9,6 +9,12 @@ services:
     restart: unless-stopped
     networks:
       - orchestrator-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   orchestrator:
     build:
@@ -25,7 +31,8 @@ services:
       - KALI_ORCHESTRATOR_LLM__PRIMARY_LLM=ollama
       - KALI_ORCHESTRATOR_LLM__OLLAMA__BASE_URL=http://ollama:11434
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
     networks:
       - orchestrator-network
     restart: unless-stopped

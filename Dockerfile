@@ -62,6 +62,9 @@ USER orchestrator
 ENV PYTHONUNBUFFERED=1
 ENV KALI_ORCHESTRATOR_HOME=/home/orchestrator/.kali-orchestrator
 
-# Default command
-CMD ["python3", "-m", "kali_orchestrator.main", "--help"]
+# Expose web port
+EXPOSE 7860
+
+# Default command - run web app
+CMD ["python3", "-m", "kali_orchestrator.web_app"]
 

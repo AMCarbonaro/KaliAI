@@ -4,6 +4,7 @@ AI-powered orchestrator for Kali Linux pentesting tools with hexstrike-ai MCP in
 
 ## Features
 
+- **🌐 Web Interface**: Beautiful, easy-to-use web UI - just download and run!
 - **Natural Language Interface**: Control pentesting tools through conversational queries
 - **hexstrike-ai Integration**: Seamless integration with Kali's official hexstrike-ai MCP server
 - **Multiple LLM Backends**: Support for Ollama (local), gemini-cli, and Google Generative AI
@@ -12,7 +13,7 @@ AI-powered orchestrator for Kali Linux pentesting tools with hexstrike-ai MCP in
 - **Extensible Plugins**: Easy-to-create plugins for custom tool integrations
 - **Rich Reporting**: Generate Markdown, HTML, and PDF reports with bug bounty templates
 - **Agent Personas**: Pre-configured personas for different testing scenarios
-- **Docker Support**: Fully containerized deployment with docker-compose
+- **Docker Support**: Fully containerized deployment with docker-compose - zero installation required
 
 ## Installation
 
@@ -50,7 +51,35 @@ kali-orchestrator setup
 
 ## Quick Start
 
-### Basic Usage
+### 🌐 Web App (Easiest - Recommended)
+
+**One-command start - no installation needed!**
+
+```bash
+# Clone the repository
+git clone https://github.com/AMCarbonaro/KaliAI.git
+cd KaliAI
+
+# Make start script executable
+chmod +x start.sh
+
+# Start everything (one command!)
+./start.sh
+```
+
+Then open your browser to **http://localhost:7860** and start using the orchestrator!
+
+The web interface provides:
+- Natural language query interface
+- Real-time conversation history
+- Session management
+- Report generation
+- Agent persona selection
+- Scope visualization
+
+**That's it!** No Python installation, no dependency management - just download and run.
+
+### CLI Usage
 
 ```bash
 # Interactive mode
@@ -419,11 +448,25 @@ Load with: `kali-orchestrator run --persona web_app`
 
 ## Docker Deployment
 
+### Web App Deployment (Recommended)
+
+```bash
+# One-command start
+./start.sh
+
+# Or manually with docker-compose
+docker-compose up -d
+
+# Access web interface at http://localhost:7860
+```
+
+### CLI Deployment
+
 ```bash
 # Build and run with docker-compose
 docker-compose up -d
 
-# Run orchestrator in container
+# Run orchestrator CLI in container
 docker exec -it kali-orchestrator kali-orchestrator run --tui
 ```
 

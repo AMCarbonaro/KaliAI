@@ -21,6 +21,7 @@ services:
       - orchestrator_data:/home/orchestrator/.kali-orchestrator
       - ./kali_orchestrator:/app/kali_orchestrator
     ports:
+      - "7860:7860"  # Gradio web interface
       - "8888:8888"  # hexstrike-ai MCP server
     environment:
       - KALI_ORCHESTRATOR_LLM__PRIMARY_LLM=ollama
@@ -30,8 +31,7 @@ services:
     networks:
       - orchestrator-network
     restart: unless-stopped
-    # Override command for interactive use
-    # command: ["python3", "-m", "kali_orchestrator.main", "run", "--tui"]
+    command: ["python3", "-m", "kali_orchestrator.web_app"]
 
 volumes:
   ollama_data:

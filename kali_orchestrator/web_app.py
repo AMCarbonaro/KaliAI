@@ -23,7 +23,23 @@ class WebOrchestrator:
             print("Initializing memory manager...", file=sys.stderr)
             self.memory = MemoryManager()
             print("Initializing agent...", file=sys.stderr)
-            self.agent = OrchestratorAgent(self.config, self.memory, force_local=False)
+            # Add retry logic for Ollama connection
+            import time
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    self.agent = OrchestratorAgent(self.config, self.memory, force_local=False)
+                    break
+                except Exception as e:
+                    if "Ollama" in str(e) or "Connection" in str(e):
+                        if attempt < max_retries - 1:
+                            wait_time = (attempt + 1) * 5
+                            print(f"   Ollama not ready, waiting {wait_time}s... (attempt {attempt + 1}/{max_retries})", file=sys.stderr)
+                            time.sleep(wait_time)
+                        else:
+                            raise
+                    else:
+                        raise
             print("Initializing report generator...", file=sys.stderr)
             self.report_generator = ReportGenerator(self.memory)
             self.current_persona = None

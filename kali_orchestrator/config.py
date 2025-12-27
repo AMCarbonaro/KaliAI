@@ -109,11 +109,11 @@ class OrchestratorConfig(BaseSettings):
 
     @classmethod
     def load_from_file(cls, config_path: Optional[Path] = None) -> "OrchestratorConfig":
-        """Load configuration from YAML file, with environment variables taking precedence."""
-        # First, create config from environment variables (if any)
-        # This ensures env vars are loaded first
-        config = cls()
+        """Load configuration from YAML file, with environment variables taking precedence.
         
+        Pydantic-settings automatically reads env vars when creating the instance.
+        We load file data and let pydantic merge it, with env vars taking precedence.
+        """
         if config_path is None:
             # Try multiple locations
             possible_paths = [
@@ -127,43 +127,20 @@ class OrchestratorConfig(BaseSettings):
                     config_path = path
                     break
 
-        # If config file exists, load it and merge with env vars
-        if config_path and Path(config_path).exists():
-            with open(config_path, "r") as f:
-                config_data = yaml.safe_load(f)
+        if config_path is None or not Path(config_path).exists():
+            # No config file, use defaults + env vars
+            return cls()
 
-            # Expand ~ in file paths
-            if "logging" in config_data and "file" in config_data["logging"]:
-                config_data["logging"]["file"] = os.path.expanduser(config_data["logging"]["file"])
+        with open(config_path, "r") as f:
+            config_data = yaml.safe_load(f) or {}
 
-            # Update config with file data, but env vars already set will take precedence
-            # because pydantic-settings processes env vars first
-            file_config = cls(**config_data)
-            
-            # Merge: env vars override file values
-            # But we want to keep env vars, so we update file values only where env vars aren't set
-            for field_name, field_value in file_config.model_dump().items():
-                current_value = getattr(config, field_name)
-                # If current (env) value is default/empty, use file value
-                if isinstance(current_value, dict):
-                    # For nested configs, merge them
-                    file_dict = getattr(file_config, field_name).model_dump()
-                    for k, v in file_dict.items():
-                        if not hasattr(current_value, k) or getattr(current_value, k) == getattr(type(current_value)(), k, None):
-                            setattr(current_value, k, v)
-                elif current_value == getattr(cls(), field_name, None):
-                    setattr(config, field_name, field_value)
-            
-            # For nested configs like llm.ollama.base_url, we need special handling
-            if "llm" in config_data:
-                llm_data = config_data["llm"]
-                if "ollama" in llm_data and "base_url" in llm_data["ollama"]:
-                    # Only set if env var didn't override it
-                    env_ollama_url = os.getenv("KALI_ORCHESTRATOR_LLM__OLLAMA__BASE_URL")
-                    if not env_ollama_url:
-                        config.llm.ollama.base_url = llm_data["ollama"]["base_url"]
-        
-        return config
+        # Expand ~ in file paths
+        if "logging" in config_data and "file" in config_data["logging"]:
+            config_data["logging"]["file"] = os.path.expanduser(config_data["logging"]["file"])
+
+        # Create config - pydantic-settings will merge file data with env vars
+        # Env vars take precedence due to SettingsConfigDict
+        return cls(**config_data)
 
     def save_to_file(self, config_path: Path) -> None:
         """Save configuration to YAML file."""

@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+import sys
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -73,21 +74,60 @@ class OllamaBackend(LLMBackend):
         # Build full prompt with context
         full_prompt = self._build_prompt(prompt, context)
 
-        try:
-            response = httpx.post(
-                f"{self.base_url}/api/generate",
-                json={
-                    "model": self.model,
-                    "prompt": full_prompt,
-                    "stream": False,
-                },
-                timeout=120,
-            )
-            response.raise_for_status()
-            result = response.json()
-            return result.get("response", "")
-        except httpx.HTTPError as e:
-            raise RuntimeError(f"Ollama API error: {e}")
+        # Retry logic for connection issues
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # First, check if Ollama is reachable
+                try:
+                    health_check = httpx.get(f"{self.base_url}/api/tags", timeout=5)
+                    health_check.raise_for_status()
+                except httpx.HTTPError:
+                    if attempt < max_retries - 1:
+                        wait_time = (attempt + 1) * 2
+                        print(f"Ollama not ready, waiting {wait_time}s... (attempt {attempt + 1}/{max_retries})", file=sys.stderr)
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        raise RuntimeError(
+                            f"Cannot connect to Ollama at {self.base_url}. "
+                            f"Make sure Ollama is running and the model '{self.model}' is pulled. "
+                            f"Run: docker exec kali-orchestrator-ollama ollama pull {self.model}"
+                        )
+
+                # Now try the actual request
+                response = httpx.post(
+                    f"{self.base_url}/api/generate",
+                    json={
+                        "model": self.model,
+                        "prompt": full_prompt,
+                        "stream": False,
+                    },
+                    timeout=120,
+                )
+                response.raise_for_status()
+                result = response.json()
+                return result.get("response", "")
+            except httpx.ConnectError as e:
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 2
+                    print(f"Connection refused, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})", file=sys.stderr)
+                    time.sleep(wait_time)
+                else:
+                    raise RuntimeError(
+                        f"Connection refused to Ollama at {self.base_url}. "
+                        f"Check: 1) Ollama container is running: docker ps | grep ollama "
+                        f"2) Model is pulled: docker exec kali-orchestrator-ollama ollama list "
+                        f"3) If no models, pull it: docker exec kali-orchestrator-ollama ollama pull {self.model}"
+                    )
+            except httpx.HTTPError as e:
+                if "404" in str(e) or "model" in str(e).lower():
+                    raise RuntimeError(
+                        f"Model '{self.model}' not found. Pull it first: "
+                        f"docker exec kali-orchestrator-ollama ollama pull {self.model}"
+                    )
+                raise RuntimeError(f"Ollama API error: {e}")
 
     def _build_prompt(self, prompt: str, context: Optional[Dict[str, Any]]) -> str:
         """Build full prompt with context.

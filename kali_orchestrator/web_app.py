@@ -149,7 +149,7 @@ class WebOrchestrator:
         """
         personas = list_personas()
 
-        with gr.Blocks(title="Kali AI Orchestrator", theme=gr.themes.Soft()) as demo:
+        with gr.Blocks(title="Kali AI Orchestrator") as demo:
             gr.Markdown("# 🎯 Kali AI Orchestrator")
             gr.Markdown("AI-powered pentesting tool orchestration with natural language interface")
 
@@ -165,8 +165,6 @@ class WebOrchestrator:
                     chatbot = gr.Chatbot(
                         label="Conversation",
                         height=400,
-                        show_copy_button=True,
-                        show_label=True,
                     )
 
                     query_input = gr.Textbox(
@@ -266,6 +264,7 @@ class WebOrchestrator:
             share=share,
             server_name=server_name,  # 0.0.0.0 to bind to all interfaces
             server_port=server_port,
+            theme=gr.themes.Soft(),  # Theme moved here for Gradio 6.0 compatibility
             show_error=True,
             quiet=False,
             inbrowser=False,  # Don't try to open browser in container

@@ -1,5 +1,6 @@
 """Web interface for Kali AI Orchestrator using Gradio."""
 
+import os
 import sys
 import gradio as gr
 from kali_orchestrator.agent import OrchestratorAgent
@@ -19,7 +20,11 @@ class WebOrchestrator:
             self.config = OrchestratorConfig.load_from_file()
             # Log the Ollama URL being used (for debugging)
             ollama_url = self.config.llm.ollama.base_url
-            print(f"   Ollama URL: {ollama_url}", file=sys.stderr)
+            env_url = os.getenv("KALI_ORCHESTRATOR_LLM__OLLAMA__BASE_URL", "not set")
+            print(f"   Ollama URL (config): {ollama_url}", file=sys.stderr)
+            print(f"   Ollama URL (env var): {env_url}", file=sys.stderr)
+            if env_url != "not set" and ollama_url != env_url:
+                print(f"   ⚠️  WARNING: Env var not being used! Using config value instead.", file=sys.stderr)
             print("Initializing memory manager...", file=sys.stderr)
             self.memory = MemoryManager()
             print("Initializing agent...", file=sys.stderr)

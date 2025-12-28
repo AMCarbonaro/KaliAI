@@ -1,6 +1,7 @@
 """LLM backend integrations: Ollama, gemini-cli, google-generativeai."""
 
 import json
+import os
 import subprocess
 import sys
 from typing import Any, Dict, List, Optional
@@ -59,7 +60,14 @@ class OllamaBackend(LLMBackend):
         """
         self.config = config
         self.model = config.ollama.model
-        self.base_url = config.ollama.base_url.rstrip("/")
+        # Check environment variable first (for Docker)
+        env_url = os.getenv("KALI_ORCHESTRATOR_LLM__OLLAMA__BASE_URL")
+        if env_url:
+            self.base_url = env_url.rstrip("/")
+            print(f"Using Ollama URL from environment: {self.base_url}", file=sys.stderr)
+        else:
+            self.base_url = config.ollama.base_url.rstrip("/")
+            print(f"Using Ollama URL from config: {self.base_url}", file=sys.stderr)
 
     def generate(self, prompt: str, context: Optional[Dict[str, Any]] = None) -> str:
         """Generate response using Ollama API.

@@ -10,7 +10,9 @@ llm:
   primary_llm: "ollama"  # ollama | gemini-cli | google-generativeai
   ollama:
     model: "llama3.2"
-    base_url: "http://localhost:11434"
+    # In Docker, use service name. On host, use localhost
+    # Environment variable KALI_ORCHESTRATOR_LLM__OLLAMA__BASE_URL overrides this
+    base_url: "http://ollama:11434"  # Changed to Docker service name
   gemini:
     api_key: ""  # Optional, for google-generativeai fallback
   openai:

@@ -18,13 +18,13 @@ class WebOrchestrator:
         try:
             print("Loading configuration...", file=sys.stderr)
             self.config = OrchestratorConfig.load_from_file()
-            # Log the Ollama URL being used (for debugging)
+            # Force override with environment variable if set (for Docker)
+            env_url = os.getenv("KALI_ORCHESTRATOR_LLM__OLLAMA__BASE_URL")
+            if env_url:
+                print(f"   Overriding Ollama URL with environment variable: {env_url}", file=sys.stderr)
+                self.config.llm.ollama.base_url = env_url
             ollama_url = self.config.llm.ollama.base_url
-            env_url = os.getenv("KALI_ORCHESTRATOR_LLM__OLLAMA__BASE_URL", "not set")
-            print(f"   Ollama URL (config): {ollama_url}", file=sys.stderr)
-            print(f"   Ollama URL (env var): {env_url}", file=sys.stderr)
-            if env_url != "not set" and ollama_url != env_url:
-                print(f"   ⚠️  WARNING: Env var not being used! Using config value instead.", file=sys.stderr)
+            print(f"   Using Ollama URL: {ollama_url}", file=sys.stderr)
             print("Initializing memory manager...", file=sys.stderr)
             self.memory = MemoryManager()
             print("Initializing agent...", file=sys.stderr)
